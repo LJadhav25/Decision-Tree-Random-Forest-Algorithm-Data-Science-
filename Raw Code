@@ -1,0 +1,89 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sb
+
+from google.colab import files
+data = files.upload()
+
+social_network = pd.read_csv('Social_Network_Ads.csv')
+
+social_network.head()
+
+social_network.info()
+
+social_network.isnull().sum()
+
+def change_gender(value):
+  if (value == 'Male'):
+    return int(1)
+  else:
+    return int(0)
+
+social_network['Gender'] = social_network['Gender'].apply(change_gender)
+
+social_network.head()
+
+social_network.corr()*100
+
+df = social_network[['Age','EstimatedSalary','Purchased']]
+
+df.corr()['Purchased']*100
+
+# We'll try to use decision tree and random forest to create a model that directly predicts weather a customer is going to purchase a product or not based on the age and estimated salary.
+
+#STANDERD SCALER
+
+from sklearn.preprocessing import StandardScaler
+
+scaler =  StandardScaler()
+
+scaler.fit(df.drop('Purchased',axis=1))
+
+scaler_featured = scaler.transform((df.drop('Purchased',axis=1)))
+
+type(scaler_featured)
+
+new_scaler_featured = pd.DataFrame(scaler_featured,columns=['Age','EstimatedSalary'])
+
+new_scaler_featured.head()
+
+# SPLIT THE DATA
+
+from sklearn.model_selection import train_test_split
+
+X_train,X_test,Y_train,Y_test = train_test_split(new_scaler_featured,df['Purchased'],test_size=0.30,random_state = 60)
+
+X_train.shape
+
+Y_test.shape
+
+# ALGORITHM DECISSION TREE
+
+from sklearn.tree import DecisionTreeClassifier
+
+classifier = DecisionTreeClassifier()
+
+classifier.fit(X_train,Y_train)
+
+predict = classifier.predict(X_test)
+
+# EVALUATE
+
+from sklearn.metrics import confusion_matrix,accuracy_score
+
+confusion_matrix(Y_test,predict)
+
+accuracy_score(Y_test,predict)*100
+
+# ALGORITHM RANDOM FOREST
+
+from sklearn.ensemble import RandomForestClassifier
+
+rfc = RandomForestClassifier(n_estimators=1000)
+
+rfc.fit(X_train,Y_train)
+
+predict_rfc = rfc.predict(X_test)
+
+accuracy_score(Y_test,predict_rfc)*100
